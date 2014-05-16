@@ -1,0 +1,140 @@
+Requirements to compile XS from scratch
+------------------------------------------
+   1. A C-compiler (gcc, c89, ...). A Fortran compiler for linking
+      since the PGPLOT libraries (see below) are Fortran libraries
+      (g77, fort77, ...). The egcs compilers work nicely. The new
+      gcc-2.95.x compilers work fine too.
+
+   2. You must have all Motif libraries and include files installed
+      on your system. On Linux platforms they are usually found
+      in /usr/X11R6/lib and /usr/X11R6/include. On HPs usually in
+      /usr/lib/Motif1.2 and /usr/include/Motif1.2.
+      XS is known to run on Motif version > 1.1.4 (i.e up to and
+      including 2.1). For the old version 1.1.4 there are some small
+      layout problems (especially with the Gaussian window) but it
+      should work. I've never tried older versions than 1.1.4, so
+      I would expect problems for such old versions (do any use them?).
+      
+      For those who do not have Motif, there is a free clone called
+      Lesstif (see http://www.lesstif.org/). It is still under
+      development, but versions >= 0.89.0 seem to work quite ok.
+      There are a few minor layout problems (menu accelerators), at least
+      for versions approx 0.90.
+      The most recent versions of Lesstif can mimic Motif 1.2, 2.0
+      and 2.1. The 2.1 clone (which is one that it is best to use) seems
+      to work pretty well for LessTif-0.93.18 which is the latest version
+      I have tested.
+      
+      For Opensource'd platforms (e.g. Linux and *BSD), OpenMotif can
+      be used (see http://www.opengroup.org/openmotif). I normally
+      build xs against openmotif but I also try to test new LessTif
+      versions every now and then.
+      
+   3. You will also probably need the PGPLOT library (see
+      http://www.astro.caltech.edu/~tjp/pgplot). You'll need the PGPLOT
+      libraries libpgplot.(a or so), libcpgplot.a (the C-binder),
+      and libXmPgplot.a (the PGPLOT Motif widget support). I
+      recommend that you use PGPLOT version >= 5.1.
+      It is necessary to link with the PGPLOT libraries if you want
+      to be able to save/print PostScript files.  If you want to save
+      the plots using GIF and PNG formats, do not forget to include
+      the GIF and PNG drivers when installing PGPLOT.
+      
+   4. XS is known to work under Linux, LinuxPPC, HPUX, Solaris.
+
+How to install XS from source
+-----------------------------
+
+ 1 Create a directory named xs (or whatever) somewhere
+
+ 2 cd into that directory
+
+ 3 ftp anonymous login to yggdrasil.oso.chalmers.se.
+
+ 4 Get the xs-1.2.x.tar.gz file (in pub/xs)
+   
+ 5 Get the tmp.xsrc file (not really necessary, the .xsrc can
+   be created within XS)
+
+ 6 quit ftp
+
+ 7 gunzip xs-1.2.x.tar.gz
+
+ 8 tar xvf xs-1.2.x.tar
+
+ 9 cp Makefile.xxx Makefile (depending on your platform)
+
+10 edit the Makefile (by setting the dir where your installed
+   executable will be located, the PGPLOT directory, location
+   of standard libraries etc, that is, if the libraries aren't
+   in the standard places). See also 'Comments on the makefile'
+   below.
+
+11 make  (if you are reinstalling xs, use 'make clean' first
+   to remove older binaries)
+
+12 make install (only if you want the xs binary in the $BIN_DIR
+   directory, make sure you have write permission in $BIN_DIR)
+
+13 cp tmp.xsrc ~/.xsrc (if you already have a .xsrc file you
+   can skip this).
+
+14 cd
+
+15 xs  (the program should start, provided that the shell
+   can find xs, i.e. $(BIN_DIR) is included in the search path)
+   To include /usr/local/bin in a .login (or .cshrc) file, add a line
+   like (assuming BIN_DIR=/usr/local/bin)
+       set path=($path /usr/local/bin)
+
+16 Edit the preferences under 'Prefs'->'Edit preferences'
+   When done save the preferences with 'Prefs'->'Save preferences'
+   Quit xs (Ctrl-q) and start it again to see if the new preferences
+   are loaded as they should.
+
+17 Have fun.  Per (bergman@oso.chalmers.se)
+
+
+How to install XS from binaries
+-------------------------------
+
+Gzipped executables (statically linked) for Linux (i386) and HP workstations
+are also available here
+      xs-1.2.x-linux-i386.gz
+      xs-1.2.x-hp.gz
+
+To extract them use
+      gunzip xs-1.2.x-xxx.gz
+      mv xs-1.2.x-xxx xs
+      chmod a+x xs
+
+Note: When using the binaries without having PGPLOT installed fonts will
+      not be drawn in the Postscript viewer. For fonts to be shown you
+      must download the PGPLOT package and extract the font info file
+      grfont.dat from
+           http://www.astro.caltech.edu/~tjp/pgplot
+      and set the environment variable PGPLOT_DIR to the directory where
+      the file grfont.dat is placed before using xs. E.g., in case of csh
+           setenv PGPLOT_DIR /usr/local/pgplot
+      or in the case of bash
+           export PGPLOT_DIR=/usr/local/pgplot
+      where it is assumed that the PGPLOT font file is located in the
+      directory /usr/local/pgplot
+
+Comments on the makefile
+------------------------
+Don't forget to change the following variables in your Makefile if you
+compile the source code from scratch.
+    BIN_DIR        The directory where your xs executable should reside
+    PGHOME         The directory where the PGPLOT libraries and include
+                   files are to be found
+    OPTS           There are some extra options that can be used:
+        -DBYTESWAP      Define for processors with Intel or Alpha byte order
+        -DNO_PGPLOT     Define if you don't need/want PGPLOT. You will not be
+                        able to save/print PostScript files.
+    XLIB           Change if your X-libraries are elsewhere.
+    XINC           Change if your X-includes are elsewhere.
+    LIBS           Depending on your system, you may need to add/remove some
+                   libraries here. For Motif2.1 on Linux platforms the library
+                   -lXp needs to be inserted between -lXm -lXpm. For Motif1.2
+                   and 2.0 the libraries in Makefile.linux should suffice.

@@ -1,0 +1,206 @@
+### Makefile for the XS package version:
+XS_VERSION= 1.2.18
+###
+
+BIN_DIR= /usr/local/bin
+PGHOME = /usr/local/pgplot
+
+#OPTS = -g
+OPTS = -O
+
+XLIB = -L/usr/openwin/lib -L/usr/dt/lib
+# We need libpng and libz for PGPLOT to handle .png files
+# -lpng and lz can be removed if the png PGPLOT driver isn't used
+PGLIB = -L$(PGHOME) -lXmPgplot -lcpgplot -lpgplot -lpng -lz
+RLIB = -lm -lXm -lXt -lX11 -R /usr/openwin/lib -R /usr/dt/lib
+LIBS = $(PGLIB) $(XLIB) $(RLIB)
+
+PGINC = -I$(PGHOME)
+XINC = -I/usr/openwin/include -I/usr/dt/include
+PIXDIR = /usr/$(XVER)/include/X11/pixmaps
+
+CFLAGS	= -c $(OPTS) $(XINC) $(PGINC)
+
+CC = gcc
+LD = f77
+
+### All C-file names in the XS package
+FILES = average\
+        baseline\
+        boxes\
+        channelmod\
+	class\
+        clip\
+        color\
+        convolve\
+        coord\
+        dfil\
+        dialogs\
+        drawing\
+        fft\
+        fftn\
+        files\
+        filter\
+        fits\
+        fitsBT\
+        fold\
+        freqfiles\
+        gauss\
+        gauss2D\
+        getants\
+        getdrp\
+        getfits\
+        help\
+        interpolate\
+        list\
+        lmfit\
+        lmfnc\
+        macro\
+        map\
+        maphandler\
+        mapinterpolate\
+        mapvp\
+        marks\
+        memcalc\
+        memfront\
+        menus\
+        misc\
+        msgs\
+        polyline\
+        prefs\
+        ps\
+        redres\
+        scale\
+        scanhandler\
+        scatter\
+        scatterhandler\
+        shift\
+        simq\
+        smooth\
+        testmap\
+        view\
+        wprintf\
+        xs
+
+### All include files.
+INCS = autoread,h\
+       button_defs.h\
+       class.h\
+       defines.h\
+       dfil.h\
+       dialogs.h\
+       drp.h\
+       fftn.h\
+       files.h\
+       fits.h\
+       global_structs.h\
+       global_vars.h\
+       list.h\
+       lmfit.h\
+       local.h\
+       map.h\
+       mem.h\
+       menu_defs.h\
+       menus.h\
+       msgs.h\
+       ps.h\
+       scatter.h\
+       xs.h
+
+### All pixmap files.
+PIXS  = gauss.xpm msgs.xpm xs.xpm
+
+### Makefiles
+MAKES = Makefile.sun Makefile.linux Makefile.hp COPYING README
+
+### Directories
+DIRS = data
+
+### All *.o files
+OBJ = $(FILES:%=%.o)
+
+### All *.c files
+SOU = $(FILES:%=%.c)
+
+### ALL *.o files that depend on define.h
+DEFOBJ = $(OBJ)
+
+### All *.o files that depend on menus.h
+MENUOBJ = menu.o scatter.o map.o xs.o ps.o shift.o marks.o prefs.o\
+          polyline.o gauss.o gauss2D.o baseline.o smooth.o redres.o boxes.o
+
+### ALL *.o files that depend on list.h
+LISTOBJ = $(MENUOBJ) list.o maphandler.o scanhandler.o view.o convolve.o\
+          memfront.o scatterhandler.o mapinterpolate.o testmap.o fitsBT.o
+
+### All *.o files that depend on local.h
+LOCALOBJ = prefs.o
+
+### All *.o files that depend on fits.h
+FITSOBJ = fits.o getants.o getfits.o prefs.o fitsBT.o
+
+### All *.o files that depend on drp.h
+DRPOBJ = getants.o getfits.o filter.o getdrp.o fitsBT.o
+
+### All *.o files that depend on mem.h
+MEMOBJ = memfront.o memcalc.o
+
+### All *.o files that depend on dialogs.h
+DIAOBJ = baseline.o boxes.o clip.o convolve.o coord.o dialogs.o fold.o\
+         gauss.o gauss2D.o macro.o map.o maphandler.o mapvp.o polyline.o\
+         prefs.o ps.o redres.o scale.o scanhandler.o scatter.o\
+         scatterhandler.o shift.o smooth.o testmap.o xs.o
+
+xs:	$(OBJ)
+	$(LD) $(OPTS) $(OBJ) -o xs $(LIBS)
+
+xs.o: menu_defs.h button_defs.h global_vars.h autoread.h xs.h
+
+prefs.o: prefs.c
+	$(CC) $(CFLAGS) -o $@ -c prefs.c -DXS_DIR=\"`pwd`/\"
+
+msgs.o: msgs.h
+
+scatter.o: scatter.h
+
+map.o: map.h
+
+files.o: files.h
+
+$(MENUOBJ): menus.h
+
+$(DEFOBJ): defines.h global_structs.h
+
+$(LISTOBJ): list.h
+
+$(LOCALOBJ): local.h
+
+$(FITSOBJ): fits.h
+
+$(DRPOBJ): drp.h
+
+$(MEMOBJ): mem.h
+
+$(DIAOBJ): dialogs.h
+
+lmfit.o lmfnc.o: lmfit.h
+
+fft.o fftn.o: fftn.h
+
+dfil.o getants.o: dfil.h
+
+ps.o: ps.h
+
+class.o: class.h
+
+clean:
+	rm -f xs *.o
+
+tar:
+	tar -cf xs$(XS_VERSION).tar $(SOU) $(INCS) $(PIXS) $(MAKES) $(DIRS)
+	compress xs$(XS_VERSION).tar
+	ls -l xs*.tar.Z
+
+install:
+	mv xs $(BIN_DIR)/.
+#	cp *.xpm $(PIXDIR)/.

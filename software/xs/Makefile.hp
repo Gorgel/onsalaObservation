@@ -1,0 +1,211 @@
+### Makefile for the XS package version
+XS_VERSION= 1.2.18
+###
+
+BIN_DIR= /usr/local/bin
+PGHOME = /usr/local/pgplot
+
+###
+
+OPTS = -O -DHAS_NOT_RINT
+LDOPTS = -O
+
+XLIB = -L/usr/lib/X11R5 -L/usr/lib/Motif1.2
+# We need libpng and libz for PGPLOT to handle .png files
+# -lpng and lz can be removed if the png PGPLOT driver isn't used
+PGLIB = -L$(PGHOME) -lXmPgplot -lcpgplot -lpgplot -lpng -lz
+RLIB = -lm -lXm -lXt -lX11
+LIBS = $(PGLIB) $(XLIB) $(RLIB)
+
+PGINC = -I$(PGHOME)
+XINC = -I/usr/include/X11R5 -I/usr/include/Motif1.2
+PIXDIR = /usr/$(XVER)/include/X11/pixmaps
+
+CFLAGS	= $(OPTS) $(XINC) $(PGINC)
+
+CC = c89
+LD = fort77
+
+### All C-file names in the XS package
+FILES = average.o\
+        baseline.o\
+        boxes.o\
+        channelmod.o\
+	class.o\
+        clip.o\
+        color.o\
+        convolve.o\
+        coord.o\
+        dfil.o\
+        dialogs.o\
+        drawing.o\
+        fft.o\
+        fftn.o\
+        files.o\
+        filter.o\
+        fits.o\
+        fitsBT.o\
+        fold.o\
+        freqfiles.o\
+        gauss.o\
+        gauss2D.o\
+        getants.o\
+        getdrp.o\
+        getfits.o\
+        help.o\
+        interpolate.o\
+        list.o\
+        lmfit.o\
+        lmfnc.o\
+        macro.o\
+        map.o\
+        maphandler.o\
+        mapinterpolate.o\
+        mapvp.o\
+        marks.o\
+        memcalc.o\
+        memfront.o\
+        menus.o\
+        misc.o\
+        msgs.o\
+        polyline.o\
+        prefs.o\
+        ps.o\
+        redres.o\
+        scale.o\
+        scanhandler.o\
+        scatter.o\
+        scatterhandler.o\
+        shift.o\
+        simq.o\
+        smooth.o\
+        testmap.o\
+        view.o\
+        wprintf.o\
+        xs.o
+
+### All include files.
+INCS = autoread.h\
+       button_defs.h\
+       class.h\
+       defines.h\
+       dfil.h\
+       dialogs.h\
+       drp.h\
+       fftn.h\
+       files.h\
+       fits.h\
+       global_structs.h\
+       global_vars.h\
+       list.h\
+       lmfit.h\
+       local.h\
+       map.h\
+       mem.h\
+       menu_defs.h\
+       menus.h\
+       msgs.h\
+       ps.h\
+       scatter.h\
+       xs.h
+
+### All pixmap files.
+PIXS  = gauss.xpm msgs.xpm xs.xpm
+
+### Makefiles
+MAKES = Makefile.sun Makefile.linux Makefile.hp COPYING README
+
+### Directories
+DIRS = data
+
+### All *.o files
+OBJ = $(FILES)
+
+### All *.c files
+SOU = $(FILES:.o=.c)
+
+### ALL *.o files that depend on define.h
+DEFOBJ = $(OBJ)
+
+### All *.o files that depend on menus.h
+MENUOBJ = menu.o scatter.o map.o xs.o ps.o shift.o marks.o prefs.o\
+          polyline.o gauss.o gauss2D.o baseline.o smooth.o redres.o boxes.o
+
+### ALL *.o files that depend on list.h
+LISTOBJ = $(MENUOBJ) list.o maphandler.o scanhandler.o view.o convolve.o\
+          memfront.o scatterhandler.o mapinterpolate.o fitsBT.o testmap.o
+
+### All *.o files that depend on local.h
+LOCALOBJ = prefs.o
+
+### All *.o files that depend on fits.h
+FITSOBJ = fits.o getants.o getfits.o prefs.o fitsBT.o
+
+### All *.o files that depend on drp.h
+DRPOBJ = getants.o getfits.o filter.o getdrp.o fitsBT.o
+
+### All *.o files that depend on mem.h
+MEMOBJ = memfront.o memcalc.o
+
+### All *.o files that depend on dialogs.h
+DIAOBJ = baseline.o boxes.o clip.o convolve.o coord.o dialogs.o fold.o\
+         gauss.o gauss2D.o macro.o map.o maphandler.o mapvp.o polyline.o\
+         prefs.o ps.o redres.o scale.o scanhandler.o scatter.o\
+         scatterhandler.o shift.o smooth.o testmap.o xs.o
+
+xs:	$(OBJ)
+	$(LD) $(LDOPTS) $(OBJ) -o xs $(LIBS)
+
+xs.o: menu_defs.h button_defs.h global_vars.h autoread.h xs.h
+
+help.o: help.c
+	$(CC) -Wp,-H20000 $(CFLAGS) -o $@ -c help.c
+
+prefs.o: prefs.c
+	$(CC) $(CFLAGS) -o $@ -c prefs.c -DXS_DIR=\"`pwd`/\"
+
+msgs.o: msgs.h
+
+scatter.o: scatter.h
+
+map.o: map.h
+
+files.o: files.h
+
+$(MENUOBJ): menus.h
+
+$(DEFOBJ): defines.h global_structs.h
+
+$(LISTOBJ): list.h
+
+$(LOCALOBJ): local.h
+
+$(FITSOBJ): fits.h
+
+$(DRPOBJ): drp.h
+
+$(MEMOBJ): mem.h
+
+$(DIAOBJ): dialogs.h
+
+lmfit.o lmfnc.o: lmfit.h
+
+fft.o fftn.o: fftn.h
+
+dfil.o getants.o: dfil.h
+
+ps.o: ps.h
+
+class.o: class.h
+
+clean:
+	rm -f xs *.o
+
+tar:
+	tar -cf xs$(XS_VERSION).tar $(SOU) $(INCS) $(PIXS) $(MAKES) $(DIRS)
+	compress xs$(XS_VERSION).tar
+	ls -l xs*.tar.Z
+
+install:
+	mv xs $(BIN_DIR)/.
+#	cp *.xpm $(PIXDIR)/.
